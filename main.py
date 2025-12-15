@@ -31,7 +31,7 @@ SENDER_PHONE = "01023847447"
 
 # 1. AI 연결
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-pro')
 
 # 2. 이미지 폴더 확인
 IMG_DIR = "images"
