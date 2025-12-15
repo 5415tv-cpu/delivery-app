@@ -23,16 +23,16 @@ from reportlab.lib.utils import ImageReader
 # ==========================================
 # 🔑 사장님의 비밀 열쇠 (여기에 키를 입력하세요)
 # ==========================================
-GOOGLE_API_KEY = ""
-SOLAPI_API_KEY = ""
-SOLAPI_API_SECRET = ""
-SENDER_PHONE = ""
+GOOGLE_API_KEY = "AIzaSyCjyq5Y9b3kc5ZU5s4JwUDnwPjFloFylJI"
+SOLAPI_API_KEY = "NCSR1SXBMOH13MYO"
+SOLAPI_API_SECRET = "S8T5X4B5PBFLDUDIAUB1ZOHLB8SIRQIY"
+SENDER_PHONE = "01023847447"
 # ==========================================
 
 # 1. AI 연결
 try:
     genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-pro')
 except Exception as e:
     st.error(f"🚨 API 키 오류: {e}")
     st.stop()
