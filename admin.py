@@ -9,17 +9,17 @@ import hashlib
 import uuid
 
 # ==========================================
-# 🔒 관리자 설정 (여기에 비밀번호를 입력하세요)
+# 🔒 관리자 설정
 # ==========================================
-ADMIN_PASSWORD = ""
+ADMIN_PASSWORD = "1234"
 DB_FILE = "stores.json"
 
 # ==========================================
-# 📩 솔라피 API 설정 (여기에 키를 채워주세요!)
+# 📩 솔라피 API 설정
 # ==========================================
-SOLAPI_API_KEY = ""
-SOLAPI_API_SECRET = ""
-SENDER_PHONE = ""
+SOLAPI_API_KEY = "NCSR1SXBMOH13MYO"
+SOLAPI_API_SECRET = "S8T5X4B5PBFLDUDIAUB1ZOHLB8SIRQIY"
+SENDER_PHONE = "01023847447"
 
 # ==========================================
 # 📩 문자 발송 함수

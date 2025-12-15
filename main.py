@@ -21,21 +21,17 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 
 # ==========================================
-# 🔑 사장님의 비밀 열쇠 (여기에 키를 입력하세요)
+# 🔑 사장님의 비밀 열쇠
 # ==========================================
-GOOGLE_API_KEY = "AIzaSyCjyq5Y9b3kc5ZU5s4JwUDnwPjFloFylJI"
+GOOGLE_API_KEY = "AIzaSyDWPo6d9e2YsvHhKGs1vO-LYx1yatoFsmo"
 SOLAPI_API_KEY = "NCSR1SXBMOH13MYO"
 SOLAPI_API_SECRET = "S8T5X4B5PBFLDUDIAUB1ZOHLB8SIRQIY"
 SENDER_PHONE = "01023847447"
 # ==========================================
 
 # 1. AI 연결
-try:
-    genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-pro')
-except Exception as e:
-    st.error(f"🚨 API 키 오류: {e}")
-    st.stop()
+genai.configure(api_key=GOOGLE_API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # 2. 이미지 폴더 확인
 IMG_DIR = "images"
@@ -58,11 +54,11 @@ def transcribe_audio(audio_bytes):
         return None  # 음성 인식 실패
     except sr.RequestError:
         return None  # API 요청 실패
-    except Exception as e:
+    except Exception:
         # WAV 형식이 아닐 경우 대체 처리
         try:
-            # 임시 파일로 저장 후 시도
             import tempfile
+            recognizer = sr.Recognizer()
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
                 tmp.write(audio_bytes)
                 tmp_path = tmp.name
@@ -97,7 +93,8 @@ def send_sms(to_phone, message):
 # 5. 장부 관리
 DB_FILE = 'stores.json'
 if not os.path.exists(DB_FILE):
-    with open(DB_FILE, 'w', encoding='utf-8') as f: json.dump({}, f)
+    with open(DB_FILE, 'w', encoding='utf-8') as f:
+        json.dump({}, f)
 
 def load_database():
     try:
@@ -107,7 +104,8 @@ def load_database():
         return {}
 
 def save_database(data):
-    with open(DB_FILE, 'w', encoding='utf-8') as f: json.dump(data, f, indent=4, ensure_ascii=False)
+    with open(DB_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
 DATABASE = load_database()
 
@@ -115,36 +113,25 @@ DATABASE = load_database()
 def create_a4_pdf(qr_img_byte, store_name):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4 # A4 크기 (약 210mm x 297mm)
+    width, height = A4
     
-    # QR코드 크기 설정 (약 5cm)
     qr_size = 50 * mm
-    
-    # 여백 및 간격 계산
     margin_x = 15 * mm
     margin_y = 20 * mm
     gap_x = 10 * mm
     gap_y = 15 * mm
     
-    # 3열 4행 루프
-    # 아래에서 위로 그리는 방식이라 좌표 계산이 조금 복잡합니다
     rows = 4
     cols = 3
     
-    # 이미지를 임시 파일로 저장해서 리포트랩이 읽을 수 있게 함
     image_reader = ImageReader(io.BytesIO(qr_img_byte.getvalue()))
 
     for r in range(rows):
         for col in range(cols):
-            # 좌표 계산
             x = margin_x + (col * (qr_size + gap_x))
             y = height - margin_y - ((r + 1) * (qr_size + gap_y))
-            
-            # QR코드 그리기
             c.drawImage(image_reader, x, y, width=qr_size, height=qr_size)
-            
-            # 가게 이름 글씨 쓰기 (QR코드 아래)
-            c.setFont("Helvetica", 10) # 한글은 깨질 수 있어서 일단 영어폰트 기본
+            c.setFont("Helvetica", 10)
             c.drawString(x, y - 5*mm, f"{store_name} - Scan Me")
             
     c.save()
@@ -184,7 +171,6 @@ if menu == "📝 가게 등록":
             in_menu = st.text_area("메뉴 목록", placeholder="갈비살 - 34000원", height=150)
             
             if st.form_submit_button("가게 등록하기"):
-                # 유효성 검사
                 if not in_id or not in_pw:
                     st.error("❌ 아이디와 비밀번호를 입력해주세요!")
                 elif in_pw != in_pw_confirm:
@@ -214,12 +200,10 @@ if menu == "📝 가게 등록":
     with tab2:
         st.subheader("🖨️ QR코드 출력 센터")
         
-        # 1. 주소 입력
         qr_url = st.text_input("연결할 주소", value="https://my-delivery-app.streamlit.app")
         store_name_print = st.text_input("인쇄될 가게 이름 (영어)", value="My Store")
         
         if st.button("QR코드 생성하기"):
-            # QR 생성
             qr_img = qrcode.make(qr_url)
             img_byte_arr = io.BytesIO()
             qr_img.save(img_byte_arr, format='PNG')
@@ -232,7 +216,6 @@ if menu == "📝 가게 등록":
                 st.success("✅ QR코드 생성 완료!")
                 st.write("아래 버튼을 누르면 **A4용지 12개 배치 파일(PDF)**을 다운로드합니다.")
                 
-                # [NEW] PDF 생성 및 다운로드 버튼
                 pdf_data = create_a4_pdf(img_byte_arr, store_name_print)
                 
                 st.download_button(
@@ -278,7 +261,7 @@ elif menu == "🏠 매장 입장":
                 if file_name:
                     img_path = os.path.join(IMG_DIR, file_name)
                     if os.path.exists(img_path):
-                        cols[index % 2].image(img_path, use_column_width=True)
+                        cols[index % 2].image(img_path, use_container_width=True)
         
         st.divider()
         st.info(f"⏰ {store['info']} | 📞 {store['phone']}")
@@ -313,7 +296,6 @@ elif menu == "🏠 매장 입장":
         with col2:
             if audio_bytes:
                 with st.spinner("🔊 음성 인식 중..."):
-                    # WAV 형식으로 변환하여 인식
                     transcribed = transcribe_audio(audio_bytes)
                     if transcribed:
                         st.session_state.voice_text = transcribed
@@ -321,16 +303,19 @@ elif menu == "🏠 매장 입장":
                     else:
                         st.warning("음성을 인식하지 못했습니다. 다시 시도해주세요.")
             
-            # 음성으로 인식된 텍스트가 있으면 전송 버튼 표시
             if st.session_state.voice_text:
                 if st.button(f"📤 '{st.session_state.voice_text}' 전송하기", use_container_width=True):
                     prompt = st.session_state.voice_text
-                    st.session_state.voice_text = ""  # 초기화
+                    st.session_state.voice_text = ""
                     
                     st.session_state.messages.append({"role": "user", "content": prompt})
                     
-                    full_prompt = f"가게:{store['name']}\n메뉴:{store['menu_text']}\n손님:{prompt}\n주문인지 판단해."
-                    bot_reply = model.generate_content(full_prompt).text
+                    try:
+                        full_prompt = f"가게:{store['name']}\n메뉴:{store['menu_text']}\n손님:{prompt}\n주문인지 판단해."
+                        bot_reply = model.generate_content(full_prompt).text
+                    except Exception as e:
+                        bot_reply = f"죄송합니다. AI 응답 오류가 발생했습니다: {e}"
+                    
                     st.session_state.messages.append({"role": "assistant", "content": bot_reply})
                     
                     if "주문" in prompt:
@@ -348,8 +333,12 @@ elif menu == "🏠 매장 입장":
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.chat_message("user").write(prompt)
 
-            full_prompt = f"가게:{store['name']}\n메뉴:{store['menu_text']}\n손님:{prompt}\n주문인지 판단해."
-            bot_reply = model.generate_content(full_prompt).text
+            try:
+                full_prompt = f"가게:{store['name']}\n메뉴:{store['menu_text']}\n손님:{prompt}\n주문인지 판단해."
+                bot_reply = model.generate_content(full_prompt).text
+            except Exception as e:
+                bot_reply = f"죄송합니다. AI 응답 오류가 발생했습니다: {e}"
+            
             st.session_state.messages.append({"role": "assistant", "content": bot_reply})
             st.chat_message("assistant").write(bot_reply)
 
