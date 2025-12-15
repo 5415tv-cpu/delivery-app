@@ -32,7 +32,7 @@ SENDER_PHONE = "01023847447"
 # 1. AI 연결
 try:
     genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-2.0-pro')
+    model = genai.GenerativeModel('gemini-pro')
 except Exception as e:
     st.error(f"🚨 API 키 오류: {e}")
     st.stop()
